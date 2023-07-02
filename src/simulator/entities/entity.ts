@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { EntityManager, Genotype, Stats } from "../manager";
+import { EntityManager } from "../manager";
+import { Genotype, Stats } from "./genetics";
 
 export type EntityType = "food" | "prey" | "predator";
 

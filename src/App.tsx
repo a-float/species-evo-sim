@@ -6,7 +6,7 @@ import { Entity } from "./simulator/entities";
 import { EntityManager } from "./simulator";
 import { DebugPanel } from "./components/DebugPanel";
 import { useFrame, Canvas } from "@react-three/fiber";
-import { ManagerContext, createManager } from "./managerContext";
+import { SimulationContext, createManager } from "./contexts/simulationContext";
 import { Scene } from "./components/Scene";
 
 THREE.ColorManagement.enabled = true;
@@ -45,7 +45,6 @@ const EntityAvatar: React.FC<EntityProps> = props => {
       new THREE.Vector3().lerpVectors(
         prevPos.current,
         entity.position,
-        // props.stepFactor
         1 - Math.pow(1 - props.stepFactor, 2) // easeOutCubic
       )
     );
@@ -80,17 +79,14 @@ const InstancedFood = (props: { entities: Entity[]; step: number }) => {
   }, [props.step]);
 
   return (
-    <instancedMesh
-      ref={instancedMeshRef as any}
-      args={[cubeGeo, foodMat, 10000]}
-    ></instancedMesh>
+    <instancedMesh ref={instancedMeshRef as any} args={[cubeGeo, foodMat, 10000]}></instancedMesh>
   );
 };
 
 type SimulationProps = { stepInterval: number };
 
 const Simulation = (props: SimulationProps) => {
-  const manager = React.useContext(ManagerContext);
+  const { manager } = React.useContext(SimulationContext);
   if (!manager) {
     throw new Error("Simulation must be placed inside ManagerContext");
   }
@@ -128,7 +124,7 @@ const Simulation = (props: SimulationProps) => {
           ["Prey:", manager.arrayEntities.prey.length],
           ["Predators:", manager.arrayEntities.predator.length],
         ]}
-        populations={manager.populationHistory.slice(-50)}
+        populations={manager.populationHistory}
       />
     </>
   );
@@ -136,15 +132,16 @@ const Simulation = (props: SimulationProps) => {
 
 const App = () => {
   const manager = React.useRef<EntityManager>(createManager());
+  const [stepInterval, setStepInterval] = React.useState(0.1);
   return (
-    <ManagerContext.Provider value={manager.current}>
+    <SimulationContext.Provider value={{ manager: manager.current, stepInterval, setStepInterval }}>
       <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
-        <Simulation stepInterval={0.2} />
+        <Simulation stepInterval={stepInterval} />
         <Scene />
         <OrbitControls />
         <Stats />
       </Canvas>
-    </ManagerContext.Provider>
+    </SimulationContext.Provider>
   );
 };
 

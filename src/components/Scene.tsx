@@ -1,11 +1,11 @@
 import React from "react";
 import * as THREE from "three";
 import { Plane } from "@react-three/drei";
-import { ManagerContext } from "../managerContext";
+import { SimulationContext } from "../contexts/simulationContext";
 
 export const Scene = () => {
   const planeRef = React.useRef<THREE.Mesh>(null);
-  const manager = React.useContext(ManagerContext)!;
+  const { manager } = React.useContext(SimulationContext)!;
   return (
     <>
       <Plane

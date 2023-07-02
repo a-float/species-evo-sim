@@ -1,8 +1,26 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import * as THREE from "three";
-import { Canvas, invalidate, useFrame } from "@react-three/fiber";
-import { Box, Circle, OrbitControls, Plane, Ring, Stats } from "@react-three/drei";
-import { Entity, EntityManager, EntityType, Food, Predator, Prey } from "./simulator/manager";
+import { setup } from "goober";
+import { OrbitControls, Plane, Stats } from "@react-three/drei";
+import { Entity, Food, Predator, Prey } from "./simulator/entities";
+import { EntityManager } from "./simulator";
+import { DebugPanel } from "./components/DebugPanel";
+import { useFrame, Canvas } from "@react-three/fiber";
+
+// r139-r149
+THREE.ColorManagement.enabled = true;
+// r139-r149
+// THREE.ColorManagement.legacyMode = false;
+setup(React.createElement);
+
+const foodMat = new THREE.MeshStandardMaterial({ color: "green" });
+const predatorMat = new THREE.MeshStandardMaterial({
+  color: "orange",
+  transparent: true,
+  opacity: 1,
+});
+const preyMat = new THREE.MeshStandardMaterial({ color: "blue", transparent: true, opacity: 1 });
+const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 
 const Scene = () => {
   const planeRef = React.useRef<THREE.Mesh>(null);
@@ -29,42 +47,75 @@ const Scene = () => {
   );
 };
 
-type EntityProps = { entity: Entity; step: number; stepInterval: number };
+const Grass = (props: { entity: Entity }) => {
+  return <mesh position={props.entity.position} geometry={cubeGeo} material={foodMat}></mesh>;
+};
+
+type EntityProps = { entity: Entity; step: number; stepFactor: number };
 
 const EntityAvatar: React.FC<EntityProps> = props => {
   const entity = props.entity;
+  const prevStep = React.useRef(props.step);
+  const prevPos = React.useRef<THREE.Vector3>(entity.position.clone());
   const ref = React.useRef<THREE.Mesh>(null);
-  const color =
-    entity.type === EntityType.PREY
-      ? "blue"
-      : entity.type === EntityType.PREDATOR
-      ? "orange"
-      : "green";
+  const mat = entity.type === "prey" ? preyMat : predatorMat;
 
-  useFrame((state, delta) => {
-    if (props.stepInterval >= 0.4) {
-      ref.current?.position.lerp(entity.position, (delta * 4) / props.stepInterval);
+  React.useEffect(() => {
+    prevStep.current = props.step;
+    if (!ref.current) return;
+    if (!prevPos.current) {
+      prevPos.current = ref.current.position.clone();
     } else {
-      ref.current?.position.copy(entity.position);
+      prevPos.current.copy(ref.current.position);
     }
-  });
+  }, [props.step]);
+
+  if (props.step === prevStep.current) {
+    ref.current?.position.copy(
+      new THREE.Vector3().lerpVectors(
+        prevPos.current,
+        entity.position,
+        // props.stepFactor
+        1 - Math.pow(1 - props.stepFactor, 3) // easeOutCubic
+      )
+    );
+  }
 
   return (
-    <Box ref={ref} castShadow args={[0.5, 0.5, 0.5]} position={entity.position}>
-      {entity.type !== EntityType.FOOD && (
+    <mesh ref={ref} castShadow position={entity.position} geometry={cubeGeo} material={mat}>
+      {/* {(
         <Ring
           args={[entity.stats.vision - 0.01, entity.stats.vision, 50]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
           <lineBasicMaterial />
         </Ring>
-      )}
-      <meshStandardMaterial color={color} transparent opacity={entity.energy} />
-    </Box>
+      )} */}
+      {/* <meshStandardMaterial color={color} transparent opacity={entity.energy} /> */}
+    </mesh>
   );
 };
 
-const ManagerContext = React.createContext<EntityManager | null>(null);
+const InstancedFood = (props: { entities: Entity[] }) => {
+  const temp = React.useRef(new THREE.Object3D());
+  const instancedMeshRef = React.useRef<THREE.InstancedMesh>();
+  React.useEffect(() => {
+    if (!instancedMeshRef.current) return;
+    for (let i = 0; i < props.entities.length; i++) {
+      temp.current.position.copy(props.entities[i].position);
+      temp.current.updateMatrix();
+      instancedMeshRef.current.setMatrixAt(i, temp.current.matrix);
+    }
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh
+      ref={instancedMeshRef as any}
+      args={[cubeGeo, foodMat, props.entities.length]}
+    ></instancedMesh>
+  );
+};
 
 const prepareManager = () => {
   const mng = new EntityManager({ foodPerTurn: 20, mapSize: 50 });
@@ -76,49 +127,58 @@ const prepareManager = () => {
   entities.forEach(e => mng.spawn(e));
   return mng;
 };
+const ManagerContext = React.createContext<EntityManager>(prepareManager());
 
-type SimulationProps = { stepInterval: number; children: ReactNode };
+type SimulationProps = { stepInterval: number };
+
 const Simulation = (props: SimulationProps) => {
-  const entityManager = React.useRef(prepareManager());
+  const manager = React.useContext(ManagerContext);
+  if (!manager) {
+    throw new Error("Simulation must be placed inside ManagerContext");
+  }
   const [step, setStep] = React.useState(0);
+  const [stepFactor, setStepFactor] = React.useState(0);
   const lastTime = React.useRef(0);
 
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
     if (time - lastTime.current > props.stepInterval) {
-      entityManager.current.step();
+      manager.step();
       setStep(prev => prev + 1);
-      console.log(`Step: ${entityManager.current.currentStep}`);
       lastTime.current = time;
     }
+    setStepFactor((time - lastTime.current) / props.stepInterval);
   });
 
   return (
-    <ManagerContext.Provider value={entityManager.current}>
+    <>
       <group position={[0, 1.02 / 4, 0]}>
-        {entityManager.current.arrayEntities.map(e => (
-          <EntityAvatar
-            key={e.id}
-            entity={e}
-            step={entityManager.current.currentStep}
-            stepInterval={props.stepInterval}
-          />
+        {manager.arrayEntities.prey.map(e => (
+          <EntityAvatar key={e.id} entity={e} step={manager.currentStep} stepFactor={stepFactor} />
         ))}
+        {manager.arrayEntities.predator.map(e => (
+          <EntityAvatar key={e.id} entity={e} step={manager.currentStep} stepFactor={stepFactor} />
+        ))}
+        <InstancedFood entities={manager.arrayEntities.food} />
+        {/* {manager.arrayEntitiesfood.map(e => (
+          <Grass key={e.id} entity={e} />
+        ))} */}
       </group>
       <Scene />
-    </ManagerContext.Provider>
+    </>
   );
 };
 
 const App = () => {
+  const manager = React.useRef<EntityManager>(prepareManager());
   return (
-    <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
-      <Simulation stepInterval={0.5}>
-        <Scene />
-      </Simulation>
-      <OrbitControls />
-      <Stats />
-    </Canvas>
+    <ManagerContext.Provider value={manager.current}>
+      <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
+        <Simulation stepInterval={0.5} />
+        <OrbitControls />
+        <Stats />
+      </Canvas>
+    </ManagerContext.Provider>
   );
 };
 

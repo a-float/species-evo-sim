@@ -165,6 +165,16 @@ const Simulation = (props: SimulationProps) => {
         ))} */}
       </group>
       <Scene />
+      <DebugPanel
+        data={[
+          ["Step:", step],
+          ["Last step time:", manager.lastStepDuration+ " ms"],
+          ["Objects:", manager.entityMap.size],
+          ["Food:", manager.arrayEntities.food.length],
+          ["Prey:", manager.arrayEntities.prey.length],
+          ["Predators:", manager.arrayEntities.predator.length],
+        ]}
+      />
     </>
   );
 };
@@ -174,7 +184,7 @@ const App = () => {
   return (
     <ManagerContext.Provider value={manager.current}>
       <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
-        <Simulation stepInterval={0.5} />
+        <Simulation stepInterval={0.3} />
         <OrbitControls />
         <Stats />
       </Canvas>

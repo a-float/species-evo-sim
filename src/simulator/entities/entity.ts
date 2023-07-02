@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { EntityManager } from "../manager";
-import { EntityStats, Genotype } from "../genetics";
+import { EntityStats, Genotype, Species } from "../genetics";
 
 export type EntityType = "food" | "prey" | "predator";
 
@@ -95,6 +95,11 @@ export abstract class Entity {
         o.generation = this.generation + 1;
         return o;
       })
-      .forEach(offspring => manager.spawn(offspring, this.speciesId));
+      .forEach(offspring => {
+        const distThis = Species.distanceMetric(offspring.stats, this.stats);
+        const distOther = Species.distanceMetric(offspring.stats, other.stats);
+        const speciesId = distThis <= distOther ? this.speciesId : other.speciesId;
+        manager.spawn(offspring, speciesId);
+      });
   }
 }

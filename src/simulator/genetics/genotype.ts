@@ -30,7 +30,7 @@ const defaultStats: Record<EntityType, BaseStats> = {
   },
   predator: {
     speed: 0.7,
-    vision: 6,
+    vision: 6.5,
     efficiency: 0,
     maxOffspring: 1,
     specials: [],

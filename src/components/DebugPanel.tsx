@@ -11,8 +11,9 @@ type DebugPanelProps = {
 };
 
 export const DebugPanel = (props: DebugPanelProps) => {
-  const { stepInterval, setStepInterval, showRings, setShowRings } =
+  const { stepInterval, setStepInterval, showRings, setShowRings, setGraphOpen } =
     React.useContext(SimulationContext);
+
   return (
     <Html fullscreen prepend>
       <CornerPanel>
@@ -27,7 +28,7 @@ export const DebugPanel = (props: DebugPanelProps) => {
           </tbody>
         </table>
         <ResponsiveContainer width='100%' height={100}>
-          <AreaChart height={200} data={props.populations.slice(-200)}>
+          <AreaChart height={200} data={props.populations.slice(-800)}>
             <defs>
               {/* <linearGradient id='colorFood' x1='0' y1='0' x2='0' y2='1'>
                 <stop offset='5%' stopColor='#82ca9d' stopOpacity={0.8} />
@@ -78,9 +79,9 @@ export const DebugPanel = (props: DebugPanelProps) => {
           />
           steps/s
         </label>
-        <PauseButton onClick={() => setStepInterval(stepInterval > 999 ? 0.5 : 1000)}>
+        <Button onClick={() => setStepInterval(stepInterval > 999 ? 0.1 : 1000)}>
           {stepInterval > 999 ? "Resume" : "Pause"}
-        </PauseButton>
+        </Button>
         <label>
           Show rings:
           <input
@@ -89,18 +90,21 @@ export const DebugPanel = (props: DebugPanelProps) => {
             checked={showRings}
           />
         </label>
+        <Button onClick={() => setGraphOpen(true)}>Show species graph</Button>
       </CornerPanel>
     </Html>
   );
 };
 
-const PauseButton = styled("button")`
+const Button = styled("button")`
   margin-top: 0.25rem;
   line-height: 1;
   padding: 0 0 0.15rem;
 `;
 
 const CornerPanel = styled("div")`
+  width: 600px;
+  color: white;
   font-family: Courier;
   position: absolute;
   top: 0;

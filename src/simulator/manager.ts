@@ -20,7 +20,7 @@ export class EntityManager {
     mapSize = 10,
     specialGeneCount = 2,
     geneotypeLength = 10,
-    mutationChange: mutationChance = 0.01,
+    mutationChance = 0.01,
   }) {
     this.entityMap = new Map<Entity["id"], Entity>();
     this.arrayEntities = {
@@ -39,8 +39,8 @@ export class EntityManager {
     this.lastStepDuration = 0;
     this.populationHistory = [];
 
-    const preySpecies = new Species("pray.spc", []);
-    const predatorSpecies = new Species("predator.spc", []);
+    const preySpecies = new Species("spc.predator.0", []);
+    const predatorSpecies = new Species("spc.pray.0", []);
     this.speciesMaps = {
       prey: new Map([[preySpecies.id, preySpecies]]),
       predator: new Map([[predatorSpecies.id, predatorSpecies]]),

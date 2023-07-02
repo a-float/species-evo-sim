@@ -1,22 +1,33 @@
+import { simConfig } from "../../config";
 import { Entity } from "../entities";
 import { EntityStats } from "./genotype";
 import skmeans from "skmeans";
 
 export class Species {
-  static maxDiversity = 28;
+  static maxDiversity = simConfig.maxSpeciesDiversity;
   id: string;
   name: string;
   parentId?: string;
   members: Entity[];
-  size = 0;
+  centroid: number[];
   constructor(name: string, members: Entity[], parentId?: string) {
     this.id = Math.random().toString(36);
     this.name = name;
     this.parentId = parentId;
     this.members = members;
+    this.centroid = [];
     for (const member of members) {
+      const arr = this.entityStatsToArray(member.stats);
+      for (let i = 0; i < arr.length; i++) {
+        if (this.centroid.length < arr.length) {
+          this.centroid.push(arr[i]);
+        } else {
+          this.centroid[i] += arr[i];
+        }
+      }
       member.speciesId = this.id;
     }
+    this.centroid = this.centroid.map(c => c / members.length);
   }
 
   add(entity: Entity): Species[] {
@@ -37,18 +48,26 @@ export class Species {
     return canAdd ? [] : this.bisect();
   }
 
+  private entityStatsToArray = (stats: EntityStats) => Object.values(stats).flat();
+
+  private getChildNumber = (name: string, dir: "left" | "right") => {
+    const split = name.split(".");
+    const number = parseInt(split[split.length - 1]);
+    return split.slice(0, -1).join(".") + "." + (dir === "left" ? number * 2 + 1 : number * 2 + 2);
+  };
+
   private bisect(): [Species, Species] {
-    const data = this.members.flatMap(m => Object.values(m.stats));
+    const data = this.members.flatMap(m => this.entityStatsToArray(m.stats));
     const result = skmeans(data, 2);
     console.log(`Bisected species ${this.name} of size ${this.members.length}`);
     return [
       new Species(
-        this.name + ".1",
+        this.getChildNumber(this.name, "left"),
         this.members.filter((_, i) => result.idxs[i] === 0),
         this.id
       ),
       new Species(
-        this.name + ".2",
+        this.getChildNumber(this.name, "right"),
         this.members.filter((_, i) => result.idxs[i] === 1),
         this.id
       ),

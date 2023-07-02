@@ -8,6 +8,7 @@ import { useFrame, Canvas } from "@react-three/fiber";
 import { SimulationContext, useSimulationControls } from "./contexts/simulationContext";
 import { Scene } from "./components/Scene";
 import { EntityDetails } from "./components/EntityDetails";
+import { SpeciesGraph } from "./components/SpeciesGraph";
 
 THREE.ColorManagement.enabled = true;
 setup(React.createElement);
@@ -98,7 +99,6 @@ const InstancedEntity = (props: { entities: Entity[]; step: number; material: TH
 
   return (
     <instancedMesh
-      onClick={e => console.log(e)}
       ref={instancedMeshRef as any}
       args={[cubeGeo, props.material, 10000]}
     ></instancedMesh>
@@ -112,7 +112,6 @@ const Simulation = (props: SimulationProps) => {
   if (!manager) {
     throw new Error("Simulation must be placed inside ManagerContext");
   }
-  const [step, setStep] = React.useState(0);
   const [stepFactor, setStepFactor] = React.useState(0);
   const lastTime = React.useRef(0);
 
@@ -120,7 +119,6 @@ const Simulation = (props: SimulationProps) => {
     const time = state.clock.getElapsedTime();
     if (time - lastTime.current > props.stepInterval) {
       manager.step();
-      setStep(prev => prev + 1);
       lastTime.current = time;
     }
     setStepFactor((time - lastTime.current) / props.stepInterval);
@@ -139,14 +137,20 @@ const Simulation = (props: SimulationProps) => {
         ))}
         {/* <InstancedEntity entities={arrayEntities.predator} step={step} material={predatorMat} />
         <InstancedEntity entities={arrayEntities.prey} step={step} material={preyMat} /> */}
-        <InstancedEntity entities={arrayEntities.food} step={step} material={foodMat} />
+        <InstancedEntity
+          entities={arrayEntities.food}
+          step={manager.currentStep}
+          material={foodMat}
+        />
       </group>
       <DebugPanel
         rows={[
-          ["Step:", step],
+          ["Step:", manager.currentStep],
           ["Last step time:", manager.lastStepDuration + " ms"],
           ["Objects:", manager.entityMap.size],
           ["Food:", manager.arrayEntities.food.length],
+          ["Prey species:", manager.speciesMaps.prey.size],
+          ["Predator species:", manager.speciesMaps.predator.size],
           ["Prey:", manager.arrayEntities.prey.length],
           ["Predators:", manager.arrayEntities.predator.length],
         ]}
@@ -158,14 +162,19 @@ const Simulation = (props: SimulationProps) => {
 
 const App = () => {
   const controls = useSimulationControls();
+  const { graphOpen } = controls;
   return (
     <SimulationContext.Provider value={controls}>
-      <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
-        <Simulation stepInterval={controls.stepInterval} />
-        <Scene />
-        <OrbitControls onClick={() => controls.setSelectedEntity(undefined)} />
-        <Stats />
-      </Canvas>
+      {graphOpen ? (
+        <SpeciesGraph />
+      ) : (
+        <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
+          <Simulation stepInterval={controls.stepInterval} />
+          <Scene />
+          <OrbitControls onClick={() => controls.setSelectedEntity(undefined)} />
+          <Stats />
+        </Canvas>
+      )}
     </SimulationContext.Provider>
   );
 };

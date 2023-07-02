@@ -9,15 +9,18 @@
   "dependencies": {
     "@react-three/drei": "9.77.10",
     "@react-three/fiber": "8.13.4",
+    "dagre": "^0.8.5",
     "gltfjsx": "^6.1.4",
     "goober": "^2.1.13",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "reactflow": "^11.7.4",
     "recharts": "^2.7.2",
     "skmeans": "^0.11.3",
     "three": "0.154.0"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.48",
     "@types/node": "~18.16.1",
     "@types/react": "^18.0.28",
     "@types/react-dom": "~18.2.0",

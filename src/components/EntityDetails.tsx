@@ -53,4 +53,5 @@ const Panel = styled("div")`
   display: flex;
   flex-direction: column;
   font-size: 0.8rem;
+  color: #eee;
 `;

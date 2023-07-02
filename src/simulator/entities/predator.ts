@@ -6,7 +6,7 @@ import { Genotype } from "../genetics";
 export class Predator extends Entity {
   constructor(position: THREE.Vector3, genotype: Genotype) {
     super("predator", position, genotype);
-    this.stepEnergyCost = 0.011;
+    this.stepEnergyCost = 0.01;
   }
 
   getInterests(): EntityType[] {

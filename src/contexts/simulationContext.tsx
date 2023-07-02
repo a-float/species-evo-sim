@@ -3,6 +3,7 @@ import { EntityManager } from "../simulator";
 import { Food, Prey, Predator, Entity } from "../simulator/entities";
 import { Genotype } from "../simulator/genetics";
 import { useSessionStorage } from "../hooks/useSessionStorage";
+import { simConfig } from "../config";
 
 export type SimulationControls = {
   manager: EntityManager;
@@ -12,21 +13,29 @@ export type SimulationControls = {
   setSelectedEntity: (entity?: Entity) => void;
   showRings: boolean;
   setShowRings: (value: boolean) => void;
+  graphOpen: boolean;
+  setGraphOpen: (value: boolean) => void;
 };
 
 export const createManager = () => {
   const mng = new EntityManager({
-    foodPerTurn: 10,
-    mapSize: 100,
-    geneotypeLength: 25,
-    specialGeneCount: 2,
-    mutationChange: 0.05,
+    foodPerTurn: simConfig.foodPerTurn,
+    mapSize: simConfig.mapSize,
+    geneotypeLength: simConfig.geneotypeLength,
+    specialGeneCount: simConfig.specialGeneCount,
+    mutationChance: simConfig.mutationChance,
   });
   const makeGenotype = () => Genotype.createEmpty(mng.genotypeLength, mng.specialGeneCount);
   const entities = [
-    ...Array.from({ length: 60 }).map(_ => new Food(mng.randomPos(), makeGenotype())),
-    ...Array.from({ length: 50 }).map(_ => new Prey(mng.randomPos(), makeGenotype())),
-    ...Array.from({ length: 30 }).map(_ => new Predator(mng.randomPos(), makeGenotype())),
+    ...Array.from({ length: simConfig.startFood }).map(
+      _ => new Food(mng.randomPos(), makeGenotype())
+    ),
+    ...Array.from({ length: simConfig.startPrey }).map(
+      _ => new Prey(mng.randomPos(), makeGenotype())
+    ),
+    ...Array.from({ length: simConfig.startPredator }).map(
+      _ => new Predator(mng.randomPos(), makeGenotype())
+    ),
   ];
   entities.forEach(e => mng.spawn(e));
   return mng;
@@ -39,6 +48,7 @@ export const useSimulationControls = (): SimulationControls => {
   const [stepInterval, setStepInterval] = useSessionStorage("step-interval", 0.2);
   const [selectedEntity, setSelectedEntity] = React.useState<Entity>();
   const [showRings, setShowRings] = useSessionStorage("show-rings", true);
+  const [graphOpen, setGraphOpen] = useSessionStorage("graph-open", false);
 
   const handleClick: EventListener = React.useCallback(
     (e: Event) => setSelectedEntity(undefined),
@@ -58,5 +68,7 @@ export const useSimulationControls = (): SimulationControls => {
     setSelectedEntity,
     showRings,
     setShowRings,
+    graphOpen,
+    setGraphOpen,
   };
 };

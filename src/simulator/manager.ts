@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { EntityType, GroupedEntities } from "./entities";
 import { Entity, Food } from "./entities";
-import { Genotype } from "./genetics";
+import { Genotype, Species } from "./genetics";
 
 export class EntityManager {
   currentStep: number;
@@ -14,6 +14,7 @@ export class EntityManager {
   genotypeLength: number;
   specialGeneCount: number;
   mutationChance: number;
+  speciesMaps: Record<Exclude<EntityType, "food">, Map<string, Species>>;
   constructor({
     foodPerTurn = 2,
     mapSize = 10,
@@ -37,6 +38,41 @@ export class EntityManager {
     this.mapSize = mapSize;
     this.lastStepDuration = 0;
     this.populationHistory = [];
+
+    const preySpecies = new Species("pray.spc", []);
+    const predatorSpecies = new Species("predator.spc", []);
+    this.speciesMaps = {
+      prey: new Map([[preySpecies.id, preySpecies]]),
+      predator: new Map([[predatorSpecies.id, predatorSpecies]]),
+    };
+  }
+
+  spawn(entity: Entity, speciesId?: string): Entity {
+    if (entity.type !== "food") {
+      const speciesMap = this.speciesMaps[entity.type];
+      if (speciesId === undefined && speciesMap.size > 1) {
+        throw new Error(
+          "Ambigious species of spawned entity: speciesId has to be specified when there are more than one species"
+        );
+      }
+      if (speciesId !== undefined && !speciesMap.has(speciesId)) {
+        throw new Error(`Species with id ${speciesId} doesn't exists`);
+      }
+
+      const species = speciesId ? speciesMap.get(speciesId) : [...speciesMap.values()][0];
+      if (species === undefined) throw new Error("Missing species: something went wrong");
+      species.add(entity).forEach(newSpecies => speciesMap.set(newSpecies.id, newSpecies));
+    }
+    this.entityMap.set(entity.id, entity);
+    this.arrayEntities[entity.type].push(entity);
+    return entity;
+  }
+
+  clear() {
+    this.arrayEntities.food = [];
+    this.arrayEntities.prey = [];
+    this.arrayEntities.predator = [];
+    this.entityMap.clear();
   }
 
   filterDead(type: EntityType) {
@@ -48,17 +84,6 @@ export class EntityManager {
         return e;
       })
       .filter(e => e.energy > 0);
-  }
-
-  clearArrays() {
-    this.arrayEntities.food = [];
-    this.arrayEntities.prey = [];
-    this.arrayEntities.predator = [];
-  }
-
-  clear() {
-    this.entityMap.clear();
-    this.clearArrays();
   }
 
   private getInterestsInRange(entity: Entity, neighbours: Entity[]) {
@@ -109,12 +134,6 @@ export class EntityManager {
       prey: this.arrayEntities.prey.length,
       predator: this.arrayEntities.predator.length,
     });
-  }
-
-  spawn(entity: Entity): Entity {
-    this.entityMap.set(entity.id, entity);
-    this.arrayEntities[entity.type].push(entity);
-    return entity;
   }
 
   randomPos() {

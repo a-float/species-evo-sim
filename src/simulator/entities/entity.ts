@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import { EntityManager } from "../manager";
-import { Genotype, Stats } from "../genetics";
-import { Predator } from "./predator";
-import { Prey } from "./prey";
+import { EntityStats, Genotype } from "../genetics";
 
 export type EntityType = "food" | "prey" | "predator";
 
@@ -12,7 +10,7 @@ export abstract class Entity {
   position: THREE.Vector3;
   id: string;
   type: EntityType;
-  stats: Stats;
+  stats: EntityStats;
   interactRange = 1;
   energy = 1;
   stepEnergyCost = 0.02;
@@ -20,6 +18,7 @@ export abstract class Entity {
   age: number;
   genotype: Genotype;
   generation: number;
+  speciesId?: string;
   private wanderDirection: THREE.Vector3;
   private lastReproduction: number;
   constructor(type: EntityType, position: THREE.Vector3, genotype: Genotype) {
@@ -32,6 +31,7 @@ export abstract class Entity {
     this.stats = this.genotype.toStats(this.type);
     this.age = 0;
     this.wanderDirection = this.getRandomVector2();
+    this.speciesId = undefined;
   }
 
   abstract getInterests(): EntityType[];
@@ -95,6 +95,6 @@ export abstract class Entity {
         o.generation = this.generation + 1;
         return o;
       })
-      .forEach(offspring => manager.spawn(offspring));
+      .forEach(offspring => manager.spawn(offspring, this.speciesId));
   }
 }

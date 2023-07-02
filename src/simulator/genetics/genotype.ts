@@ -9,7 +9,7 @@ type BaseStats = {
   specials: number[]; // 1 2 3 ... 9
 };
 
-export type Stats = BaseStats & {
+export type EntityStats = BaseStats & {
   cost: number; // number of non empty genes
 };
 
@@ -91,7 +91,7 @@ export class Genotype extends String {
     return new Genotype(copy.join(""), this.specialsCount);
   }
 
-  toStats(type: EntityType): Stats {
+  toStats(type: EntityType): EntityStats {
     const countMap = new Map<string, number>();
     for (const letter of this.toLowerCase()) {
       countMap.set(letter, (countMap.get(letter) ?? 0) + 1);

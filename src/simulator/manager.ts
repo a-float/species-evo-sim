@@ -9,6 +9,7 @@ export class EntityManager {
   foodPerTurn: number;
   mapSize: number;
   lastStepDuration: number;
+  populationHistory: Record<EntityType, number>[];
   constructor({ foodPerTurn = 2, mapSize = 10 }) {
     this.entityMap = new Map<Entity["id"], Entity>();
     this.arrayEntities = {
@@ -20,6 +21,7 @@ export class EntityManager {
     this.foodPerTurn = foodPerTurn;
     this.mapSize = mapSize;
     this.lastStepDuration = 0;
+    this.populationHistory = [];
   }
 
   filterDead(type: EntityType) {
@@ -82,6 +84,11 @@ export class EntityManager {
     for (let i = 0; i < this.foodPerTurn; i++) this.spawn(new Food(this.randomPos()));
     this.lastStepDuration = performance.now() - t;
     this.currentStep += 1;
+    this.populationHistory.push({
+      food: this.arrayEntities.food.length,
+      prey: this.arrayEntities.prey.length,
+      predator: this.arrayEntities.predator.length,
+    });
   }
 
   spawn(entity: Entity): Entity {

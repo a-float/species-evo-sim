@@ -11,7 +11,8 @@ type DebugPanelProps = {
 };
 
 export const DebugPanel = (props: DebugPanelProps) => {
-  const { stepInterval, setStepInterval } = React.useContext(SimulationContext);
+  const { stepInterval, setStepInterval, showRings, setShowRings } =
+    React.useContext(SimulationContext);
   return (
     <Html fullscreen prepend>
       <CornerPanel>
@@ -77,10 +78,27 @@ export const DebugPanel = (props: DebugPanelProps) => {
           />
           steps/s
         </label>
+        <PauseButton onClick={() => setStepInterval(stepInterval > 999 ? 0.5 : 1000)}>
+          {stepInterval > 999 ? "Resume" : "Pause"}
+        </PauseButton>
+        <label>
+          Show rings:
+          <input
+            type='checkbox'
+            onChange={e => setShowRings(e.target.checked)}
+            checked={showRings}
+          />
+        </label>
       </CornerPanel>
     </Html>
   );
 };
+
+const PauseButton = styled("button")`
+  margin-top: 0.25rem;
+  line-height: 1;
+  padding: 0 0 0.15rem;
+`;
 
 const CornerPanel = styled("div")`
   font-family: Courier;

@@ -1,13 +1,13 @@
 import React from "react";
 import * as THREE from "three";
 import { setup } from "goober";
-import { OrbitControls, Stats } from "@react-three/drei";
+import { OrbitControls, Ring, Stats } from "@react-three/drei";
 import { Entity } from "./simulator/entities";
-import { EntityManager } from "./simulator";
 import { DebugPanel } from "./components/DebugPanel";
 import { useFrame, Canvas } from "@react-three/fiber";
-import { SimulationContext, createManager } from "./contexts/simulationContext";
+import { SimulationContext, useSimulationControls } from "./contexts/simulationContext";
 import { Scene } from "./components/Scene";
+import { EntityDetails } from "./components/EntityDetails";
 
 THREE.ColorManagement.enabled = true;
 setup(React.createElement);
@@ -20,11 +20,13 @@ const predatorMat = new THREE.MeshStandardMaterial({
 });
 const preyMat = new THREE.MeshStandardMaterial({ color: "blue", transparent: true, opacity: 1 });
 const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+const ringMat = new THREE.LineBasicMaterial();
 
 type EntityProps = { entity: Entity; step: number; stepFactor: number };
 
 const EntityAvatar: React.FC<EntityProps> = props => {
   const entity = props.entity;
+  const { selectedEntity, setSelectedEntity, showRings } = React.useContext(SimulationContext);
   const prevStep = React.useRef(props.step);
   const prevPos = React.useRef<THREE.Vector3>(entity.position.clone());
   const ref = React.useRef<THREE.Mesh>(null);
@@ -51,16 +53,30 @@ const EntityAvatar: React.FC<EntityProps> = props => {
   }
 
   return (
-    <mesh ref={ref} castShadow position={entity.position} geometry={cubeGeo} material={mat}>
-      {/* {(
-        <Ring
-          args={[entity.stats.vision - 0.01, entity.stats.vision, 50]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <lineBasicMaterial />
-        </Ring>
-      )} */}
+    <mesh
+      ref={ref}
+      castShadow
+      position={entity.position}
+      geometry={cubeGeo}
+      material={mat}
+      onClick={() => setSelectedEntity(entity)}
+    >
+      {showRings && (
+        <>
+          <Ring
+            args={[entity.interactRange - 0.01, entity.interactRange, 50]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={ringMat}
+          />
+          <Ring
+            args={[entity.stats.vision - 0.01, entity.stats.vision, 50]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={ringMat}
+          />
+        </>
+      )}
       {/* <meshStandardMaterial color={color} transparent opacity={entity.energy} /> */}
+      {selectedEntity?.id === entity.id && <EntityDetails entity={entity} />}
     </mesh>
   );
 };
@@ -131,14 +147,13 @@ const Simulation = (props: SimulationProps) => {
 };
 
 const App = () => {
-  const manager = React.useRef<EntityManager>(createManager());
-  const [stepInterval, setStepInterval] = React.useState(0.1);
+  const controls = useSimulationControls();
   return (
-    <SimulationContext.Provider value={{ manager: manager.current, stepInterval, setStepInterval }}>
+    <SimulationContext.Provider value={controls}>
       <Canvas camera={{ fov: 70, position: [0, 20, 20] }} shadows>
-        <Simulation stepInterval={stepInterval} />
+        <Simulation stepInterval={controls.stepInterval} />
         <Scene />
-        <OrbitControls />
+        <OrbitControls onClick={() => controls.setSelectedEntity(undefined)} />
         <Stats />
       </Canvas>
     </SimulationContext.Provider>

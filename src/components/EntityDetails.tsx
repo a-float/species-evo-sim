@@ -19,13 +19,21 @@ export const EntityDetails = (props: { entity: Entity }) => {
               <td>{Math.round(entity.energy * 100) + "%"}</td>
             </tr>
             <tr>
+              <td>isDead:</td>
+              <td>{JSON.stringify(entity.isDead)}</td>
+            </tr>
+            <tr>
               <td>generation:</td>
               <td>{entity.generation}</td>
             </tr>
             {Object.entries(entity.stats).map(([key, value]) => (
               <tr key={key}>
                 <td>{key}</td>
-                <td>{JSON.stringify(value)}</td>
+                <td>
+                  {typeof value === "number"
+                    ? Math.round(value * 100) / 100
+                    : JSON.stringify(value)}
+                </td>
               </tr>
             ))}
             <tr>

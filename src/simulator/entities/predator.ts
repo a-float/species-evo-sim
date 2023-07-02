@@ -6,7 +6,7 @@ import { Genotype } from "../genetics";
 export class Predator extends Entity {
   constructor(position: THREE.Vector3, genotype: Genotype) {
     super("predator", position, genotype);
-    this.stepEnergyCost = 0.01;
+    this.stepEnergyCost = 0.011;
   }
 
   getInterests(): EntityType[] {
@@ -29,9 +29,10 @@ export class Predator extends Entity {
       }
     }
     const prey = this.sortByDistance(neighbours.prey);
-    if (prey.length) {
+    if (this.energy < 0.7 && prey.length) {
       diff.subVectors(prey[0].position, this.position);
       if (diff.lengthSq() <= Math.pow(this.interactRange, 2)) {
+        if (!prey[0].isDead) this.energy = 1;
         this.eat(prey[0]);
       } else {
         diff.clampLength(0, this.stats.speed);

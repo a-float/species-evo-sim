@@ -19,18 +19,21 @@ const predatorMat = new THREE.MeshStandardMaterial({
   opacity: 1,
 });
 const preyMat = new THREE.MeshStandardMaterial({ color: "blue", transparent: true, opacity: 1 });
+const deadPreyMat = new THREE.MeshStandardMaterial({
+  color: "blue",
+  transparent: true,
+  opacity: 0.5,
+});
 const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const ringMat = new THREE.LineBasicMaterial();
 
-type EntityProps = { entity: Entity; step: number; stepFactor: number };
-
-const EntityAvatar: React.FC<EntityProps> = props => {
+const EntityAvatar = (props: { entity: Entity; step: number; stepFactor: number }) => {
   const entity = props.entity;
   const { selectedEntity, setSelectedEntity, showRings } = React.useContext(SimulationContext);
   const prevStep = React.useRef(props.step);
   const prevPos = React.useRef<THREE.Vector3>(entity.position.clone());
   const ref = React.useRef<THREE.Mesh>(null);
-  const mat = entity.type === "prey" ? preyMat : predatorMat;
+  const mat = entity.type === "predator" ? predatorMat : entity.isDead ? deadPreyMat : preyMat;
 
   React.useEffect(() => {
     prevStep.current = props.step;
@@ -75,13 +78,12 @@ const EntityAvatar: React.FC<EntityProps> = props => {
           />
         </>
       )}
-      {/* <meshStandardMaterial color={color} transparent opacity={entity.energy} /> */}
       {selectedEntity?.id === entity.id && <EntityDetails entity={entity} />}
     </mesh>
   );
 };
 
-const InstancedFood = (props: { entities: Entity[]; step: number }) => {
+const InstancedEntity = (props: { entities: Entity[]; step: number; material: THREE.Material }) => {
   const temp = React.useRef(new THREE.Object3D());
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>();
   React.useEffect(() => {
@@ -95,7 +97,11 @@ const InstancedFood = (props: { entities: Entity[]; step: number }) => {
   }, [props.step]);
 
   return (
-    <instancedMesh ref={instancedMeshRef as any} args={[cubeGeo, foodMat, 10000]}></instancedMesh>
+    <instancedMesh
+      onClick={e => console.log(e)}
+      ref={instancedMeshRef as any}
+      args={[cubeGeo, props.material, 10000]}
+    ></instancedMesh>
   );
 };
 
@@ -120,6 +126,8 @@ const Simulation = (props: SimulationProps) => {
     setStepFactor((time - lastTime.current) / props.stepInterval);
   });
 
+  const arrayEntities = manager.arrayEntities;
+
   return (
     <>
       <group position={[0, 1.02 / 4, 0]}>
@@ -129,7 +137,9 @@ const Simulation = (props: SimulationProps) => {
         {manager.arrayEntities.predator.map(e => (
           <EntityAvatar key={e.id} entity={e} step={manager.currentStep} stepFactor={stepFactor} />
         ))}
-        <InstancedFood entities={manager.arrayEntities.food} step={manager.currentStep} />
+        {/* <InstancedEntity entities={arrayEntities.predator} step={step} material={predatorMat} />
+        <InstancedEntity entities={arrayEntities.prey} step={step} material={preyMat} /> */}
+        <InstancedEntity entities={arrayEntities.food} step={step} material={foodMat} />
       </group>
       <DebugPanel
         rows={[

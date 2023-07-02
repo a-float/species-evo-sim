@@ -1,4 +1,5 @@
 import { EntityType } from "../entities";
+import { gaussianRandom as n } from "./normal";
 
 type BaseStats = {
   speed: number; // s
@@ -21,15 +22,15 @@ const defaultStats: Record<EntityType, BaseStats> = {
     specials: [],
   },
   prey: {
-    speed: 0,
+    speed: 0.6,
     vision: 3,
     efficiency: 0,
     maxOffspring: 5,
     specials: [],
   },
   predator: {
-    speed: 0.6,
-    vision: 5,
+    speed: 0.7,
+    vision: 6,
     efficiency: 0,
     maxOffspring: 1,
     specials: [],
@@ -42,6 +43,13 @@ export class Genotype extends String {
   constructor(genotype: string, specialsCount: number) {
     super(genotype);
     this.specialsCount = specialsCount;
+  }
+
+  static createEmpty(geneLength: number, specialsCount: number): Genotype {
+    const result = Array.from({ length: geneLength })
+      .map(() => ".")
+      .join("");
+    return new Genotype(result, specialsCount);
   }
 
   static createRandom(geneLength: number, specialsCount: number): Genotype {
@@ -65,14 +73,11 @@ export class Genotype extends String {
         `Genotypes specials counts are not equal ${this.specialsCount} != ${other.specialsCount}`
       );
     }
-    let [a, b] = [this.valueOf(), other.valueOf()];
-    if (Math.random() < 0.5) {
-      [a, b] = [b, a];
+    const result = [];
+    for (let i = 0; i < this.length; i++) {
+      result.push((Math.random() < 0.5 ? this : other).charAt(i));
     }
-    return new Genotype(
-      this.slice(0, Math.floor(this.length / 2)) + other.slice(Math.floor(other.length / 2)),
-      this.specialsCount
-    );
+    return new Genotype(result.join(""), this.specialsCount);
   }
 
   mutate(mutationChange: number): Genotype {
@@ -92,8 +97,8 @@ export class Genotype extends String {
       countMap.set(letter, (countMap.get(letter) ?? 0) + 1);
     }
     return {
-      speed: defaultStats[type].speed + (countMap.get("s") ?? 0) / 5,
-      vision: defaultStats[type].vision + (countMap.get("v") ?? 0),
+      speed: n(defaultStats[type].speed) + (countMap.get("s") ?? 0) / this.length,
+      vision: n(defaultStats[type].vision) + (countMap.get("v") ?? 0) / this.length,
       efficiency: defaultStats[type].speed + (countMap.get("s") ?? 0),
       maxOffspring: defaultStats[type].maxOffspring + (countMap.get("o") ?? 0),
       specials: Array.from({ length: this.specialsCount }).map(

@@ -42,12 +42,12 @@ export class EntityManager {
   filterDead(type: EntityType) {
     this.arrayEntities[type] = this.arrayEntities[type]
       .map(e => {
-        if (e.isDead) {
+        if (e.energy <= 0) {
           this.entityMap.delete(e.id);
         }
         return e;
       })
-      .filter(e => !e.isDead);
+      .filter(e => e.energy > 0);
   }
 
   clearArrays() {
@@ -64,9 +64,13 @@ export class EntityManager {
   private getInterestsInRange(entity: Entity, neighbours: Entity[]) {
     return neighbours.filter(
       other =>
-        !other.isDead &&
+        other.energy > 0 &&
         other !== entity &&
-        entity.position.distanceToSquared(other.position) <= Math.pow(entity.stats.vision, 2)
+        entity.position.distanceToSquared(other.position) <= Math.pow(entity.stats.vision, 2) &&
+        Array.from({ length: this.specialGeneCount }).reduce(
+          (acc, _, i) => acc && entity.stats.specials[i] >= other.stats.specials[i],
+          true
+        )
     );
   }
 
@@ -85,11 +89,10 @@ export class EntityManager {
           ? this.getInterestsInRange(entity, this.arrayEntities.predator)
           : [],
       };
-      entity.update(neighbours, this);
-      const mult = 1 + (entity.stats.cost - entity.stats.efficiency)  / this.genotypeLength;
-      entity.energy -= entity.stepEnergyCost * mult;
-      if (entity.energy <= 0) {
-        entity.isDead = true;
+      if (entity.energy > 0 && !entity.isDead) {
+        const mult = 1 + (entity.stats.cost - entity.stats.efficiency) / this.genotypeLength;
+        entity.energy -= entity.stepEnergyCost * mult;
+        entity.update(neighbours, this);
       }
     }
 
@@ -120,8 +123,5 @@ export class EntityManager {
       0,
       (Math.random() - 0.5) * this.mapSize
     );
-  }
-  randomGenotype() {
-    return Genotype.createRandom(this.genotypeLength, this.specialGeneCount);
   }
 }

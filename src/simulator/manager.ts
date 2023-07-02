@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { EntityType, GroupedEntities } from "./entities";
 import { Entity, Food } from "./entities";
+import { Genotype } from "./genetics";
 
 export class EntityManager {
   currentStep: number;
@@ -10,7 +11,16 @@ export class EntityManager {
   mapSize: number;
   lastStepDuration: number;
   populationHistory: Record<EntityType, number>[];
-  constructor({ foodPerTurn = 2, mapSize = 10 }) {
+  genotypeLength: number;
+  specialGeneCount: number;
+  mutationChance: number;
+  constructor({
+    foodPerTurn = 2,
+    mapSize = 10,
+    specialGeneCount = 2,
+    geneotypeLength = 10,
+    mutationChange: mutationChance = 0.01,
+  }) {
     this.entityMap = new Map<Entity["id"], Entity>();
     this.arrayEntities = {
       food: [],
@@ -19,6 +29,11 @@ export class EntityManager {
     };
     this.currentStep = 0;
     this.foodPerTurn = foodPerTurn;
+
+    this.genotypeLength = geneotypeLength;
+    this.specialGeneCount = specialGeneCount;
+    this.mutationChance = mutationChance;
+
     this.mapSize = mapSize;
     this.lastStepDuration = 0;
     this.populationHistory = [];
@@ -71,7 +86,8 @@ export class EntityManager {
           : [],
       };
       entity.update(neighbours, this);
-      entity.energy -= entity.stepEnergyCost;
+      const mult = 1 + (entity.stats.cost - entity.stats.efficiency)  / this.genotypeLength;
+      entity.energy -= entity.stepEnergyCost * mult;
       if (entity.energy <= 0) {
         entity.isDead = true;
       }
@@ -81,7 +97,8 @@ export class EntityManager {
     this.filterDead("prey");
     this.filterDead("predator");
 
-    for (let i = 0; i < this.foodPerTurn; i++) this.spawn(new Food(this.randomPos()));
+    for (let i = 0; i < this.foodPerTurn; i++)
+      this.spawn(new Food(this.randomPos(), new Genotype("", this.specialGeneCount)));
     this.lastStepDuration = performance.now() - t;
     this.currentStep += 1;
     this.populationHistory.push({
@@ -92,7 +109,6 @@ export class EntityManager {
   }
 
   spawn(entity: Entity): Entity {
-    entity.setId(Math.random().toString(36));
     this.entityMap.set(entity.id, entity);
     this.arrayEntities[entity.type].push(entity);
     return entity;
@@ -104,5 +120,8 @@ export class EntityManager {
       0,
       (Math.random() - 0.5) * this.mapSize
     );
+  }
+  randomGenotype() {
+    return Genotype.createRandom(this.genotypeLength, this.specialGeneCount);
   }
 }

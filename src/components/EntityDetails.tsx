@@ -18,6 +18,10 @@ export const EntityDetails = (props: { entity: Entity }) => {
               <td>energy:</td>
               <td>{Math.round(entity.energy * 100) + "%"}</td>
             </tr>
+            <tr>
+              <td>generation:</td>
+              <td>{entity.generation}</td>
+            </tr>
             {Object.entries(entity.stats).map(([key, value]) => (
               <tr key={key}>
                 <td>{key}</td>

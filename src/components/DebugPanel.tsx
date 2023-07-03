@@ -1,7 +1,7 @@
 import React from "react";
 import { Html } from "@react-three/drei";
 import { styled } from "goober";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Label, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { EntityManager } from "../simulator";
 import { SimulationContext } from "../contexts/simulationContext";
 
@@ -27,8 +27,8 @@ export const DebugPanel = (props: DebugPanelProps) => {
             ))}
           </tbody>
         </table>
-        <ResponsiveContainer width='100%' height={200}>
-          <AreaChart height={200} data={props.populations.slice(-800)}>
+        <ResponsiveContainer width='100%' height={100}>
+          <AreaChart height={300} data={props.populations.slice(-400)}>
             <defs>
               {/* <linearGradient id='colorFood' x1='0' y1='0' x2='0' y2='1'>
                 <stop offset='5%' stopColor='#82ca9d' stopOpacity={0.8} />
@@ -64,8 +64,12 @@ export const DebugPanel = (props: DebugPanelProps) => {
               fillOpacity={1}
               fill='url(#colorPredator)'
             />
-            <XAxis />
-            <YAxis />
+            <XAxis>
+              <Label value='step' dy={10} />
+            </XAxis>
+            {/* <YAxis>
+              <Label value='population' angle={-90} dx={-10} />
+            </YAxis> */}
           </AreaChart>
         </ResponsiveContainer>
         <label>
@@ -105,7 +109,7 @@ const Button = styled("button")`
 `;
 
 const CornerPanel = styled("div")`
-  width: 600px;
+  width: 200px;
   color: white;
   font-family: Courier;
   position: absolute;
@@ -116,8 +120,6 @@ const CornerPanel = styled("div")`
   display: flex;
   flex-direction: column;
   font-size: 0.8rem;
-  background-color: white;
-  color: black;
   td {
     min-width: 6ch;
   }

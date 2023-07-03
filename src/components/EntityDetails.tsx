@@ -37,6 +37,7 @@ export const EntityDetails = (props: { entity: Entity }) => {
               </tr>
             ))}
             <tr>
+              <td>genotype:</td>
               <td>{entity.genotype.valueOf()}</td>
             </tr>
           </tbody>

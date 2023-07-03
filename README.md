@@ -1,8 +1,31 @@
-# React Three Fiber + Vite Starter
+# Simulation of species formation in prey-predator ecosystem
 
-_A simple React Three Fiber + Vite starter with an import-ready CodeSandbox config._
+### Project structure
 
-![Preview](/public/preview.gif)
+`config.ts` contains the main config parameters
+`App.tsx` is the React entrypoint of the app. It is responsible for rendering the simulation canvas.
+`manager.ts` responsible for entity management and the main loop of the simulation
+`genetics` implements the genetic operators: crossover, mutation as well as translation into entity attributes
+`species.ts` responsible for calculating interspecies diversity as well as bisecting it using the 2-means clustering once
+
+### How to run
+
+```
+yarn
+yarn run dev
+```
+Use the panel in the top-right corner for basic control over the simulation.
+Click on prey (blue cube) or a predator (orange cube) in order to see their status.
+Use the right mouse button to hide the entity description popup.
+
+### Other scripts
+
+```
+yarn run dev
+yarn run build
+yarn run preview
+yarn run sandbox
+```
 
 ### Resources:
 
@@ -10,21 +33,3 @@ _A simple React Three Fiber + Vite starter with an import-ready CodeSandbox conf
 - [Drei](https://github.com/pmndrs/drei): React Three Fiber Helpers
 - [Three.js](https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene): 3D Engine
 - [Vite](https://vitejs.dev/guide/): Static Web Server
-- [CodeSandbox](https://codesandbox.io/docs/configuration): Online Prototyping Container (optional)
-
-### Installation
-
-```
-npm install
-```
-
-### Scripts
-
-```
-npm run dev
-npm run build
-npm run preview
-npm run sandbox
-```
-### CodeSandbox
-To create a sandbox from this starter, [import your repository URL](https://codesandbox.io/dashboard/repositories) (this repo works too), or [fork this template](https://codesandbox.io/s/react-three-fiber-vite-starter-r1tgld).

@@ -2,11 +2,11 @@
 
 ### Project structure
 
-`config.ts` contains the main config parameters
-`App.tsx` is the React entrypoint of the app. It is responsible for rendering the simulation canvas.
-`manager.ts` responsible for entity management and the main loop of the simulation
-`genetics` implements the genetic operators: crossover, mutation as well as translation into entity attributes
-`species.ts` responsible for calculating interspecies diversity as well as bisecting it using the 2-means clustering once
+`config.ts` contains the main config parameters  
+`App.tsx` is the React entrypoint of the app. It is responsible for rendering the simulation canvas.  
+`manager.ts` responsible for entity management and the main loop of the simulation  
+`genetics` implements the genetic operators: crossover, mutation as well as translation into entity attributes  
+`species.ts` responsible for calculating interspecies diversity as well as bisecting it using the 2-means clustering once  
 
 ### How to run
 
@@ -14,7 +14,7 @@
 yarn
 yarn run dev
 ```
-Use the panel in the top-right corner for basic control over the simulation.
+Use the panel in the top-right corner for basic control over the simulation.  
 Click on prey (blue cube) or a predator (orange cube) in order to see their status.
 Use the right mouse button to hide the entity description popup.
 

@@ -1,5 +1,5 @@
 export const simConfig = {
-  maxSpeciesDiversity: 100,
+  maxSpeciesDiversity: 60,
   startFood: 60,
   startPrey: 50,
   startPredator: 30,

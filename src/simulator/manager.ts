@@ -39,8 +39,8 @@ export class EntityManager {
     this.lastStepDuration = 0;
     this.populationHistory = [];
 
-    const preySpecies = new Species("spc.predator.0", []);
-    const predatorSpecies = new Species("spc.pray.0", []);
+    const preySpecies = new Species("spc.pray.0", []);
+    const predatorSpecies = new Species("spc.predator.0", []);
     this.speciesMaps = {
       prey: new Map([[preySpecies.id, preySpecies]]),
       predator: new Map([[predatorSpecies.id, predatorSpecies]]),

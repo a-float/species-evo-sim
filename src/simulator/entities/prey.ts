@@ -21,7 +21,7 @@ export class Prey extends Entity {
       return this.position.addScaledVector(diff, this.stats.speed);
     }
     if (this.canReproduce()) {
-      const mates = this.sortByDistance(neighbours.prey);
+      const mates = this.sortByDistance(this.filterInterspeciesMates(neighbours.prey));
       if (mates.length && mates[0].canReproduce()) {
         diff.subVectors(mates[0].position, this.position);
         if (diff.lengthSq() <= this.interactRange) {

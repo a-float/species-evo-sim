@@ -15,19 +15,7 @@ export class Species {
     this.name = name;
     this.parentId = parentId;
     this.members = members;
-    this.centroid = [];
-    for (const member of members) {
-      const arr = this.entityStatsToArray(member.stats);
-      for (let i = 0; i < arr.length; i++) {
-        if (this.centroid.length < arr.length) {
-          this.centroid.push(arr[i]);
-        } else {
-          this.centroid[i] += arr[i];
-        }
-      }
-      member.speciesId = this.id;
-    }
-    this.centroid = this.centroid.map(c => c / members.length);
+    this.centroid = this.calcCentroid(members);
   }
 
   add(entity: Entity): Species[] {
@@ -48,6 +36,23 @@ export class Species {
     return canAdd ? [] : this.bisect();
   }
 
+  private calcCentroid(members: Entity[]): number[] {
+    if (members.length === 0) return [];
+    const centroid: number[] = [];
+    for (const member of members) {
+      const arr = this.entityStatsToArray(member.stats);
+      for (let i = 0; i < arr.length; i++) {
+        if (centroid.length < arr.length) {
+          centroid.push(arr[i]);
+        } else {
+          centroid[i] += arr[i];
+        }
+      }
+      member.speciesId = this.id;
+    }
+    return centroid.map(c => c / members.length);
+  }
+
   private entityStatsToArray = (stats: EntityStats) => Object.values(stats).flat();
 
   private getChildNumber = (name: string, dir: "left" | "right") => {
@@ -57,9 +62,10 @@ export class Species {
   };
 
   private bisect(): [Species, Species] {
-    const data = this.members.flatMap(m => this.entityStatsToArray(m.stats));
+    const data = this.members.map(m => this.entityStatsToArray(m.stats));
     const result = skmeans(data, 2);
     console.log(`Bisected species ${this.name} of size ${this.members.length}`);
+    console.log(result);
     return [
       new Species(
         this.getChildNumber(this.name, "left"),

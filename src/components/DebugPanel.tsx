@@ -1,7 +1,7 @@
 import React from "react";
 import { Html } from "@react-three/drei";
 import { styled } from "goober";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { EntityManager } from "../simulator";
 import { SimulationContext } from "../contexts/simulationContext";
 
@@ -27,7 +27,7 @@ export const DebugPanel = (props: DebugPanelProps) => {
             ))}
           </tbody>
         </table>
-        <ResponsiveContainer width='100%' height={100}>
+        <ResponsiveContainer width='100%' height={200}>
           <AreaChart height={200} data={props.populations.slice(-800)}>
             <defs>
               {/* <linearGradient id='colorFood' x1='0' y1='0' x2='0' y2='1'>
@@ -64,6 +64,8 @@ export const DebugPanel = (props: DebugPanelProps) => {
               fillOpacity={1}
               fill='url(#colorPredator)'
             />
+            <XAxis />
+            <YAxis />
           </AreaChart>
         </ResponsiveContainer>
         <label>
@@ -114,6 +116,8 @@ const CornerPanel = styled("div")`
   display: flex;
   flex-direction: column;
   font-size: 0.8rem;
+  background-color: white;
+  color: black;
   td {
     min-width: 6ch;
   }

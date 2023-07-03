@@ -46,6 +46,11 @@ export abstract class Entity {
     return withDist.map(e => e[0]);
   }
 
+  filterInterspeciesMates(entities: Entity[]): Entity[] {
+    return entities.filter(e => e.type === this.type).filter(e => e.speciesId === this.speciesId);
+    // .filter(e => Species.distanceMetric(this.stats, e.stats) < Species.maxDiversity);
+  }
+
   getRandomVector2() {
     const diff = new THREE.Vector3().randomDirection();
     diff.y = 0;
@@ -96,10 +101,7 @@ export abstract class Entity {
         return o;
       })
       .forEach(offspring => {
-        const distThis = Species.distanceMetric(offspring.stats, this.stats);
-        const distOther = Species.distanceMetric(offspring.stats, other.stats);
-        const speciesId = distThis <= distOther ? this.speciesId : other.speciesId;
-        manager.spawn(offspring, speciesId);
+        manager.spawn(offspring, this.speciesId);
       });
   }
 }

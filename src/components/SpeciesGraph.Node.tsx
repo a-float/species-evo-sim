@@ -2,6 +2,8 @@ import { Handle, NodeProps, Position } from "reactflow";
 import { Species } from "../simulator/genetics";
 import { styled } from "goober";
 
+const to2Digs = (x: number) => (Math.round(x * 100) / 100 + "0").slice(0, 4);
+
 export const SpeciesNode = (props: NodeProps<Species>) => (
   <>
     <Handle type='source' position={Position.Top} id='a' />
@@ -15,9 +17,13 @@ export const SpeciesNode = (props: NodeProps<Species>) => (
             {Array.from({ length: 4 }).map((_, i) => (
               <tr key={i}>
                 <td>{Object.keys(props.data.members[0].stats)[i]}</td>
-                <td>{Math.round(props.data.centroid[i] * 100) / 100}</td>
+                <td>{to2Digs(props.data.centroid[i])}</td>
               </tr>
             ))}
+            <tr>
+              <td>cost</td>
+              <td>{to2Digs(props.data.centroid[4])}</td>
+            </tr>
             <tr>
               <td>specials</td>
               <td>
@@ -37,7 +43,7 @@ export const SpeciesNode = (props: NodeProps<Species>) => (
 
 const Body = styled("div")`
   background-color: #eee;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   min-width: 160px;
   min-height: 50px;
   display: flex;
@@ -45,7 +51,7 @@ const Body = styled("div")`
   justify-content: center;
   align-items: center;
   font-size: 0.8rem;
-  padding: 0.2rem 0;
+  padding: 0.2rem 0.2rem;
   line-height: 0.95;
   td:nth-child(2) {
     text-align: right;

@@ -17,7 +17,7 @@ export class Predator extends Entity {
     super.update();
     const diff = new THREE.Vector3();
     if (this.canReproduce()) {
-      const mates = this.sortByDistance(neighbours.predator);
+      const mates = this.sortByDistance(this.filterInterspeciesMates(neighbours.predator));
       if (mates.length && mates[0].canReproduce()) {
         diff.subVectors(mates[0].position, this.position);
         if (diff.lengthSq() <= this.interactRange) {
